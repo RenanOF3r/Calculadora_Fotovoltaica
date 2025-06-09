@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputTarifa = document.getElementById('tarifa');
     const spanConsumoEstimado = document.getElementById('consumo-estimado');
     const secaoResultado = document.getElementById('resultado-calculo');
-    const botaoVerGraficoInvestimento = document.getElementById('ver-grafico-investimento');
+    const botaoVerGraficoPayback = document.getElementById('ver-grafico-payback');
     const graficosResultadoContainer = document.getElementById('graficos-resultado-container');
 
     const resultadoInvestimento = document.getElementById('resultado-investimento');
@@ -28,10 +28,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const erroGasto = document.getElementById('erro-gasto');
     const erroTarifa = document.getElementById('erro-tarifa');
 
-    const ctxPayback = document.getElementById('graficoPaybackAcumulado')?.getContext('2d');
-    const ctxConsumoGeracao = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
     let graficoPayback;
     let graficoConsumoGeracao;
+    let resultadosCalculados;
 
     const dadosCidades = {
         RJ: [
@@ -191,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function exibirResultados(r) {
         if (!r) return;
+        resultadosCalculados = r;
 
         resultadoInvestimento.textContent = formatarMoeda(r.investimentoEstimado);
         resultadoEconomiaMes.textContent = formatarMoeda(r.economiaMensal);
@@ -204,17 +204,14 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
         resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
         resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
-
-        atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
-        atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
-
         secaoResultado.classList.remove('hidden');
         graficosResultadoContainer.classList.add('hidden');
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function atualizarGraficoConsumoGeracao(consumo, geracao) {
-        if (!ctxConsumoGeracao) return;
+        const ctx = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
+        if (!ctx) return;
         const data = {
             labels: ['Consumo Médio (kWh)', 'Geração Estimada (kWh)'],
             datasets: [{
@@ -226,11 +223,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const config = { type: 'doughnut', data, options: { responsive: true, plugins: { legend: { position: 'top' } } } };
         if (graficoConsumoGeracao) graficoConsumoGeracao.destroy();
-        graficoConsumoGeracao = new Chart(ctxConsumoGeracao, config);
+        graficoConsumoGeracao = new Chart(ctx, config);
     }
 
     function atualizarGraficoPayback(investimento, economiaAnual, paybackAnos) {
-        if (!ctxPayback || investimento <= 0 || economiaAnual <= 0) return;
+        const ctx = document.getElementById('graficoPaybackAcumulado')?.getContext('2d');
+        if (!ctx || investimento <= 0 || economiaAnual <= 0) return;
         const anos = Math.max(Math.ceil(paybackAnos) + 3, 10);
         const labels = Array.from({ length: anos + 1 }, (_, i) => `Ano ${i}`);
         const dadosInvestimento = Array(anos + 1).fill(investimento);
@@ -258,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         if (graficoPayback) graficoPayback.destroy();
-        graficoPayback = new Chart(ctxPayback, config);
+        graficoPayback = new Chart(ctx, config);
     }
 
     selectEstado.addEventListener('change', popularCidades);
@@ -278,9 +276,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    botaoVerGraficoInvestimento?.addEventListener('click', () => {
+    botaoVerGraficoPayback?.addEventListener('click', () => {
         graficosResultadoContainer.classList.toggle('hidden');
         if (!graficosResultadoContainer.classList.contains('hidden')) {
+            if (resultadosCalculados) {
+                atualizarGraficoConsumoGeracao(resultadosCalculados.consumoMensal, resultadosCalculados.geracaoMensalEstimada);
+                atualizarGraficoPayback(resultadosCalculados.investimentoEstimado, resultadosCalculados.economiaAnual, resultadosCalculados.paybackAnos);
+            }
             graficosResultadoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
