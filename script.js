@@ -28,6 +28,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const erroGasto = document.getElementById('erro-gasto');
     const erroTarifa = document.getElementById('erro-tarifa');
 
+    const ctxPayback = document.getElementById('graficoPaybackAcumulado')?.getContext('2d');
+    const ctxConsumoGeracao = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
     let graficoPayback;
     let graficoConsumoGeracao;
     let resultadosCalculados;
@@ -204,14 +206,15 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
         resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
         resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
+        atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
+        atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
         secaoResultado.classList.remove('hidden');
-        graficosResultadoContainer.classList.add('hidden');
+        graficosResultadoContainer.classList.remove('hidden');
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function atualizarGraficoConsumoGeracao(consumo, geracao) {
-        const ctx = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
-        if (!ctx) return;
+        if (!ctxConsumoGeracao) return;
         const data = {
             labels: ['Consumo Médio (kWh)', 'Geração Estimada (kWh)'],
             datasets: [{
@@ -223,12 +226,11 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         const config = { type: 'doughnut', data, options: { responsive: true, plugins: { legend: { position: 'top' } } } };
         if (graficoConsumoGeracao) graficoConsumoGeracao.destroy();
-        graficoConsumoGeracao = new Chart(ctx, config);
+        graficoConsumoGeracao = new Chart(ctxConsumoGeracao, config);
     }
 
     function atualizarGraficoPayback(investimento, economiaAnual, paybackAnos) {
-        const ctx = document.getElementById('graficoPaybackAcumulado')?.getContext('2d');
-        if (!ctx || investimento <= 0 || economiaAnual <= 0) return;
+        if (!ctxPayback || investimento <= 0 || economiaAnual <= 0) return;
         const anos = Math.max(Math.ceil(paybackAnos) + 3, 10);
         const labels = Array.from({ length: anos + 1 }, (_, i) => `Ano ${i}`);
         const dadosInvestimento = Array(anos + 1).fill(investimento);
@@ -256,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
         if (graficoPayback) graficoPayback.destroy();
-        graficoPayback = new Chart(ctx, config);
+        graficoPayback = new Chart(ctxPayback, config);
     }
 
     selectEstado.addEventListener('change', popularCidades);
