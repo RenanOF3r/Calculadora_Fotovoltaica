@@ -204,8 +204,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
         resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
         resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
+ 1b77il-codex/adicionar-gráficos-de-payback
+        atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
+        atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
+
+ main
         secaoResultado.classList.remove('hidden');
-        graficosResultadoContainer.classList.add('hidden');
+        graficosResultadoContainer.classList.remove('hidden');
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
