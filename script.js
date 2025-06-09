@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputTarifa = document.getElementById('tarifa');
     const spanConsumoEstimado = document.getElementById('consumo-estimado');
     const secaoResultado = document.getElementById('resultado-calculo');
-    const botaoVerGraficoInvestimento = document.getElementById('ver-grafico-investimento');
+    const botaoVerGraficoPayback = document.getElementById('ver-grafico-payback');
     const graficosResultadoContainer = document.getElementById('graficos-resultado-container');
 
     const resultadoInvestimento = document.getElementById('resultado-investimento');
@@ -32,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctxConsumoGeracao = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
     let graficoPayback;
     let graficoConsumoGeracao;
+    let resultadosCalculados;
 
     const dadosCidades = {
         RJ: [
@@ -191,6 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function exibirResultados(r) {
         if (!r) return;
+        resultadosCalculados = r;
 
         resultadoInvestimento.textContent = formatarMoeda(r.investimentoEstimado);
         resultadoEconomiaMes.textContent = formatarMoeda(r.economiaMensal);
@@ -204,12 +206,10 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
         resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
         resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
-
         atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
         atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
-
         secaoResultado.classList.remove('hidden');
-        graficosResultadoContainer.classList.add('hidden');
+        graficosResultadoContainer.classList.remove('hidden');
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
@@ -278,9 +278,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    botaoVerGraficoInvestimento?.addEventListener('click', () => {
+    botaoVerGraficoPayback?.addEventListener('click', () => {
         graficosResultadoContainer.classList.toggle('hidden');
         if (!graficosResultadoContainer.classList.contains('hidden')) {
+            if (resultadosCalculados) {
+                atualizarGraficoConsumoGeracao(resultadosCalculados.consumoMensal, resultadosCalculados.geracaoMensalEstimada);
+                atualizarGraficoPayback(resultadosCalculados.investimentoEstimado, resultadosCalculados.economiaAnual, resultadosCalculados.paybackAnos);
+            }
             graficosResultadoContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
