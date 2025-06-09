@@ -1,0 +1,30 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 2rem;
+    background: #f5f5f5;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.error {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    display: none;
+}
+
+.hidden {
+    display: none;
+}
+
+form > div {
+    margin-bottom: 1rem;
+}
+
+canvas {
+    max-width: 600px;
+    margin: 1rem 0;
+}

@@ -13,9 +13,82 @@
 </head>
 <body>
 
+    <header>
+        <h1>Simulador Solar Fotovoltaico</h1>
+        <p>Utilize o formulário abaixo para calcular seu sistema fotovoltaico.</p>
+    </header>
+
+    <main>
+        <form id="calculadora-form">
+            <div>
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" required>
+                    <option value="">Selecione...</option>
+                    <option value="RJ">Rio de Janeiro</option>
+                    <option value="SP">São Paulo</option>
+                    <option value="MG">Minas Gerais</option>
+                    <option value="BA">Bahia</option>
+                    <option value="CE">Ceará</option>
+                </select>
+                <span class="error" id="erro-estado"></span>
+            </div>
+
+            <div>
+                <label for="cidade">Cidade</label>
+                <select id="cidade" name="cidade" disabled required>
+                    <option value="">Selecione o estado primeiro...</option>
+                </select>
+                <span class="error" id="erro-cidade"></span>
+            </div>
+
+            <div>
+                <label for="gasto-mensal">Gasto Mensal (R$)</label>
+                <input type="number" id="gasto-mensal" min="50" step="0.01" value="500" required>
+                <output id="gasto-mensal-valor">500</output>
+                <span class="error" id="erro-gasto"></span>
+            </div>
+
+            <div>
+                <label for="tarifa">Tarifa (R$/kWh)</label>
+                <input type="number" id="tarifa" step="0.01" value="0.85" required>
+                <span class="error" id="erro-tarifa"></span>
+            </div>
+
+            <p>Consumo Mensal Estimado: <span id="consumo-estimado">-- kWh</span></p>
+
+            <button type="submit">Calcular</button>
+        </form>
+
+        <section id="resultado-calculo" class="hidden">
+            <h2>Resultados</h2>
+            <p>Investimento aproximado: <strong id="resultado-investimento">--</strong></p>
+            <p>Economia mensal estimada: <strong id="resultado-economia-mes">--</strong></p>
+            <p>Economia total (25 anos): <strong id="resultado-economia-total">--</strong></p>
+            <p>Payback: <strong id="resultado-payback">--</strong></p>
+            <h3>Impacto Ambiental</h3>
+            <p>CO₂ evitado por ano: <strong id="resultado-co2">--</strong></p>
+            <p>Árvores equivalentes em 25 anos: <strong id="resultado-arvores">--</strong></p>
+            <p>Quilômetros em carro elétrico por ano: <strong id="resultado-km-carro">--</strong></p>
+            <h3>Sistema</h3>
+            <p>Potência necessária: <strong id="resultado-potencia">--</strong></p>
+            <p>Número de painéis: <strong id="resultado-paineis">--</strong></p>
+            <p>Geração anual estimada: <strong id="resultado-geracao-anual">--</strong></p>
+            <p>Área mínima: <strong id="resultado-area">--</strong></p>
+            <p>Peso estimado: <strong id="resultado-peso">--</strong></p>
+            <button type="button" id="ver-grafico-investimento">Ver gráficos</button>
+        </section>
+
+        <section id="graficos-resultado-container" class="hidden">
+            <canvas id="graficoPaybackAcumulado"></canvas>
+            <canvas id="graficoConsumoGeracao"></canvas>
+        </section>
+    </main>
+
+
 <h1>Simulador Solar Fotovoltaico</h1>
 <p>Utilize o formulário abaixo para calcular seu sistema fotovoltaico.</p>
 <!-- TODO: adicionar formulário e restante do conteúdo -->
 
+ main
 </body>
 </html>
