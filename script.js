@@ -27,6 +27,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const erroGasto = document.getElementById('erro-gasto');
     const erroTarifa = document.getElementById('erro-tarifa');
 
+    const btnToggleTheme = document.getElementById('toggle-theme');
+    const root = document.documentElement;
+
+    function aplicarTema(tema) {
+        root.setAttribute('data-bs-theme', tema);
+        if (btnToggleTheme) {
+            btnToggleTheme.innerHTML = tema === 'dark' ?
+                '<i class="fas fa-sun"></i>' :
+                '<i class="fas fa-moon"></i>';
+        }
+    }
+
+    btnToggleTheme?.addEventListener('click', () => {
+        const novoTema = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        aplicarTema(novoTema);
+        localStorage.setItem('theme', novoTema);
+    });
+
+    aplicarTema(localStorage.getItem('theme') || 'light');
+
     let graficoPayback;
     let graficoConsumoGeracao;
     let graficoComparativoConsumo;
