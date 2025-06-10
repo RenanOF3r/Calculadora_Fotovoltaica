@@ -74,7 +74,7 @@ output {
     margin-left: 0.3rem;
 }
 
-button[type=submit], #ver-grafico-payback {
+button[type=submit] {
     margin-top: 0.5rem;
     background: #27334d;
     color: #fff;
@@ -91,7 +91,7 @@ button[type=submit], #ver-grafico-payback {
     gap: 0.6em;
 }
 
-button[type=submit]:hover, #ver-grafico-payback:hover {
+button[type=submit]:hover {
     background: #14326a;
 }
 
