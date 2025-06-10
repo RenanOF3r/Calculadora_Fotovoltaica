@@ -216,8 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function atualizarGraficoComparativoConsumo(consumoMensal, geracaoAnualEstimada) {
-        // Consumo sem FV = consumoMensal * 12
-        // Consumo com FV = max(consumoMensal * 12 - geracaoAnualEstimada, 0)
         const ctx = document.getElementById('graficoConsumoComparativo')?.getContext('2d');
         if (!ctx) return;
         const consumoSemFV = consumoMensal * 12;
