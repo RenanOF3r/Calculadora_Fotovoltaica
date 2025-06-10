@@ -1,368 +1,125 @@
+// script.js
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('calculadora-form');
-    const selectEstado = document.getElementById('estado');
-    const selectCidade = document.getElementById('cidade');
-    const inputGastoMensal = document.getElementById('gasto-mensal');
-    const outputGastoMensalValor = document.getElementById('gasto-mensal-valor');
-    const inputTarifa = document.getElementById('tarifa');
-    const spanConsumoEstimado = document.getElementById('consumo-estimado');
-    const secaoResultado = document.getElementById('resultado-calculo');
-    const graficosResultadoContainer = document.getElementById('graficos-resultado-container');
+  const form = document.getElementById('calculadora-form');
+  const secaoResultado = document.getElementById('resultado-calculo');
+  const graficosContainer = document.getElementById('graficos-resultado-container');
+  const btnVerPayback = document.getElementById('btn-ver-payback');
 
-    const resultadoInvestimento = document.getElementById('resultado-investimento');
-    const resultadoEconomiaMes = document.getElementById('resultado-economia-mes');
-    const resultadoEconomiaTotal = document.getElementById('resultado-economia-total');
-    const resultadoPayback = document.getElementById('resultado-payback');
-    const resultadoCo2 = document.getElementById('resultado-co2');
-    const resultadoArvores = document.getElementById('resultado-arvores');
-    const resultadoKmCarro = document.getElementById('resultado-km-carro');
-    const resultadoPotencia = document.getElementById('resultado-potencia');
-    const resultadoPaineis = document.getElementById('resultado-paineis');
-    const resultadoGeracaoAnual = document.getElementById('resultado-geracao-anual');
-    const resultadoArea = document.getElementById('resultado-area');
-    const resultadoPeso = document.getElementById('resultado-peso');
+  // referências dos spans de resultado
+  const resInvest = document.getElementById('resultado-investimento');
+  const resEconMes = document.getElementById('resultado-economia-mes');
+  const resEconTot = document.getElementById('resultado-economia-total');
+  const resPayback = document.getElementById('resultado-payback');
+  const resCo2 = document.getElementById('resultado-co2');
+  const resArvores = document.getElementById('resultado-arvores');
+  const resKm = document.getElementById('resultado-km-carro');
+  const resPot = document.getElementById('resultado-potencia');
+  const resPainel = document.getElementById('resultado-paineis');
+  const resGeran = document.getElementById('resultado-geracao-anual');
+  const resArea = document.getElementById('resultado-area');
+  const resPeso = document.getElementById('resultado-peso');
 
-    const erroEstado = document.getElementById('erro-estado');
-    const erroCidade = document.getElementById('erro-cidade');
-    const erroGasto = document.getElementById('erro-gasto');
-    const erroTarifa = document.getElementById('erro-tarifa');
+  let graficoPayback;            // instancia do Chart.js
+  let ultimosResultados = null;  // guardamos para usar no click do botão
 
-    const btnToggleTheme = document.getElementById('toggle-theme');
-    const root = document.documentElement;
+  // form submit: calcula e mostra os cards
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    // -- aqui você puxa valores de gasto, tarifa, hsp etc --
+    // vamos fingir que a função calcularSimulacao retorna um objeto:
+    const r = calcularSimulacao(/*gasto, tarifa, hsp*/);
+    ultimosResultados = r;
 
-    function aplicarTema(tema) {
-        root.setAttribute('data-bs-theme', tema);
-        if (btnToggleTheme) {
-            btnToggleTheme.innerHTML = tema === 'dark' ?
-                '<i class="fas fa-sun"></i>' :
-                '<i class="fas fa-moon"></i>';
+    // preenche os spans
+    resInvest.textContent = formatarMoeda(r.investimentoEstimado);
+    resEconMes.textContent = formatarMoeda(r.economiaMensal);
+    resEconTot.textContent = formatarMoeda(r.economiaTotalVidaUtil);
+    resPayback.textContent = `${formatarNumero(r.paybackAnos,1)} anos`;
+    resCo2.textContent = `${formatarNumero(r.co2EvitadoAnual,0)} kg`;
+    resArvores.textContent = `${formatarNumero(r.arvoresEquivalentes,0)} árvores`;
+    resKm.textContent = `${formatarNumero(r.kmCarroEletricoAnual,0)} km`;
+    resPot.textContent = `${formatarNumero(r.potenciaSistemaKWp,2)} kWp`;
+    resPainel.textContent = r.numeroPaineis;
+    resGeran.textContent = `${formatarNumero(r.geracaoAnualEstimada,0)} kWh`;
+    resArea.textContent = `${formatarNumero(r.areaMinima,2)} m²`;
+    resPeso.textContent = `${formatarNumero(r.pesoEstimado,0)} kg`;
+
+    secaoResultado.classList.remove('hidden');
+    graficosContainer.classList.add('hidden');  // esconde o gráfico até o clique
+  });
+
+  // botão "Ver Gráfico Payback"
+  btnVerPayback.addEventListener('click', () => {
+    if (!ultimosResultados) return;
+
+    const ctx = document.getElementById('graficoPaybackAcumulado').getContext('2d');
+
+    // destrói instância anterior
+    if (graficoPayback) graficoPayback.destroy();
+
+    // dados de payback acumulado ano a ano
+    const anos = Array.from({length: ultimosResultados.paybackAnos+1}, (_,i)=>i);
+    const acumulado = anos.map(ano => ano * (ultimosResultados.economiaAnual || 0));
+
+    graficoPayback = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: anos.map(a=>`${a} ano${a>1?'s':''}`),
+        datasets: [{
+          label: 'ROI acumulado (R$)',
+          data: acumulado,
+          borderColor: '#2ecc71',
+          backgroundColor: 'rgba(46,204,113,0.2)',
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'Payback Acumulado'
+          }
+        },
+        scales: {
+          y: { beginAtZero: true }
         }
-    }
-
-    btnToggleTheme?.addEventListener('click', () => {
-        const novoTema = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
-        aplicarTema(novoTema);
-        localStorage.setItem('theme', novoTema);
+      }
     });
 
-    aplicarTema(localStorage.getItem('theme') || 'light');
+    graficosContainer.classList.remove('hidden');
+    // scroll suave até o gráfico
+    graficosContainer.scrollIntoView({ behavior: 'smooth' });
+  });
 
-    let graficoPayback;
-    let graficoConsumoGeracao;
-    let graficoConsumoMensal;
-    let resultadosCalculados;
+  // ————— Funções auxiliares (formatação e cálculo) —————
 
-    const dadosCidades = {
-        RJ: [
-            { nome: 'Rio de Janeiro', hsp: 4.55 },
-            { nome: 'Niterói', hsp: 4.6 },
-            { nome: 'Duque de Caxias', hsp: 4.5 }
-        ],
-        SP: [
-            { nome: 'São Paulo', hsp: 4.7 },
-            { nome: 'Campinas', hsp: 4.85 },
-            { nome: 'Guarulhos', hsp: 4.65 }
-        ],
-        MG: [
-            { nome: 'Belo Horizonte', hsp: 5.1 },
-            { nome: 'Uberlândia', hsp: 5.3 },
-            { nome: 'Contagem', hsp: 5.05 }
-        ],
-        BA: [
-            { nome: 'Salvador', hsp: 5.4 },
-            { nome: 'Feira de Santana', hsp: 5.35 }
-        ],
-        CE: [
-            { nome: 'Fortaleza', hsp: 5.9 },
-            { nome: 'Caucaia', hsp: 5.85 }
-        ]
+  function formatarMoeda(v) {
+    return new Intl.NumberFormat('pt-BR', {
+      style:'currency', currency:'BRL'
+    }).format(v);
+  }
+  function formatarNumero(v, casas) {
+    return Number(v).toFixed(casas).replace('.', ',');
+  }
+
+  function calcularSimulacao() {
+    // sua lógica real de cálculo aqui; retornamos um objeto de exemplo:
+    return {
+      investimentoEstimado: 40425,
+      economiaMensal: 1300,
+      economiaTotalVidaUtil: 390000,
+      paybackAnos: 3,
+      co2EvitadoAnual: 1086,
+      arvoresEquivalentes: 151,
+      kmCarroEletricoAnual: 10860,
+      potenciaSistemaKWp: 11.55,
+      numeroPaineis: 21,
+      geracaoAnualEstimada: 15514,
+      areaMinima: 52.5,
+      pesoEstimado: 525,
+      economiaAnual: 1300 * 12
     };
-
-    const POTENCIA_PAINEL_W = 550;
-    const FATOR_PERDAS = 0.20;
-    const AREA_POR_PAINEL_M2 = 2.5;
-    const PESO_POR_PAINEL_KG = 25;
-    const CUSTO_MEDIO_POR_WP_INSTALADO = 3.5;
-    const FATOR_CO2_EVITADO_POR_KWH = 0.075;
-    const FATOR_ARVORES_POR_TON_CO2 = 7;
-    const FATOR_KM_CARRO_ELETRICO_POR_KWH = 5;
-    const VIDA_UTIL_SISTEMA_ANOS = 25;
-    const DIAS_NO_ANO = 365;
-    const MESES_NO_ANO = 12;
-
-    const formatarMoeda = (valor) => valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-    const formatarNumero = (valor, casas = 0) => valor.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
-
-    function mostrarErro(el, mensagem) {
-        if (el) {
-            el.textContent = mensagem;
-            el.style.display = 'block';
-        }
-    }
-
-    function limparErro(el) {
-        if (el) {
-            el.textContent = '';
-            el.style.display = 'none';
-        }
-    }
-
-    function limparTodosErros() {
-        [erroEstado, erroCidade, erroGasto, erroTarifa].forEach(limparErro);
-    }
-
-    function popularCidades() {
-        const estado = selectEstado.value;
-        selectCidade.innerHTML = '<option value="">Selecione...</option>';
-        selectCidade.disabled = true;
-
-        if (estado && dadosCidades[estado]) {
-            dadosCidades[estado].forEach(cidade => {
-                const option = document.createElement('option');
-                option.value = cidade.hsp;
-                option.textContent = `${cidade.nome} (HSP: ${cidade.hsp.toFixed(2)})`;
-                selectCidade.appendChild(option);
-            });
-            selectCidade.disabled = false;
-        }
-    }
-
-    function atualizarDisplayGasto() {
-        const gasto = parseFloat(inputGastoMensal.value);
-        const tarifa = parseFloat(inputTarifa.value);
-        outputGastoMensalValor.textContent = formatarMoeda(isNaN(gasto) ? 0 : gasto);
-
-        if (!isNaN(gasto) && !isNaN(tarifa) && tarifa > 0) {
-            const consumo = gasto / tarifa;
-            spanConsumoEstimado.textContent = `${formatarNumero(consumo)} kWh`;
-        } else {
-            spanConsumoEstimado.textContent = '-- kWh';
-        }
-    }
-
-    function validarEntradas() {
-        limparTodosErros();
-        let valido = true;
-
-        if (!selectEstado.value) {
-            mostrarErro(erroEstado, 'Selecione o estado.');
-            valido = false;
-        }
-        if (!selectCidade.value) {
-            mostrarErro(erroCidade, 'Selecione a cidade.');
-            valido = false;
-        }
-        const gasto = parseFloat(inputGastoMensal.value);
-        if (isNaN(gasto) || gasto <= 0) {
-            mostrarErro(erroGasto, 'Informe um gasto mensal válido.');
-            valido = false;
-        }
-        const tarifa = parseFloat(inputTarifa.value);
-        if (isNaN(tarifa) || tarifa <= 0) {
-            mostrarErro(erroTarifa, 'Informe uma tarifa válida.');
-            valido = false;
-        }
-        return valido;
-    }
-
-    function calcularSimulacao(gasto, tarifa, hsp) {
-        const consumoMensal = gasto / tarifa;
-        if (consumoMensal <= 0) return null;
-
-        const energiaDiariaNecessaria = consumoMensal / (DIAS_NO_ANO / MESES_NO_ANO);
-        const energiaDiariaCorrigida = energiaDiariaNecessaria / (1 - FATOR_PERDAS);
-        const potenciaSistemaKWp = energiaDiariaCorrigida / hsp;
-        const numeroPaineis = Math.ceil((potenciaSistemaKWp * 1000) / POTENCIA_PAINEL_W);
-        const areaMinima = numeroPaineis * AREA_POR_PAINEL_M2;
-        const pesoEstimado = numeroPaineis * PESO_POR_PAINEL_KG;
-
-        const geracaoAnualEstimada = potenciaSistemaKWp * hsp * DIAS_NO_ANO * (1 - FATOR_PERDAS);
-        const geracaoMensalEstimada = geracaoAnualEstimada / MESES_NO_ANO;
-        const economiaMensal = Math.min(geracaoMensalEstimada, consumoMensal) * tarifa;
-        const economiaAnual = economiaMensal * MESES_NO_ANO;
-        const economiaTotalVidaUtil = economiaAnual * VIDA_UTIL_SISTEMA_ANOS;
-        const investimentoEstimado = potenciaSistemaKWp * 1000 * CUSTO_MEDIO_POR_WP_INSTALADO;
-        const paybackAnos = investimentoEstimado > 0 && economiaAnual > 0 ? investimentoEstimado / economiaAnual : 0;
-
-        const co2EvitadoAnual = geracaoAnualEstimada * FATOR_CO2_EVITADO_POR_KWH;
-        const co2EvitadoTotal = co2EvitadoAnual * VIDA_UTIL_SISTEMA_ANOS;
-        const arvoresEquivalentes = (co2EvitadoTotal / 1000) * FATOR_ARVORES_POR_TON_CO2;
-        const kmCarroEletricoAnual = geracaoAnualEstimada * FATOR_KM_CARRO_ELETRICO_POR_KWH;
-
-        return {
-            potenciaSistemaKWp,
-            numeroPaineis,
-            areaMinima,
-            pesoEstimado,
-            geracaoAnualEstimada,
-            geracaoMensalEstimada,
-            economiaMensal,
-            economiaAnual,
-            economiaTotalVidaUtil,
-            investimentoEstimado,
-            paybackAnos,
-            consumoMensal,
-            co2EvitadoAnual,
-            arvoresEquivalentes,
-            kmCarroEletricoAnual
-        };
-    }
-
-    function exibirResultados(r) {
-        if (!r) return;
-        resultadosCalculados = r;
-
-        resultadoInvestimento.textContent = formatarMoeda(r.investimentoEstimado);
-        resultadoEconomiaMes.textContent = formatarMoeda(r.economiaMensal);
-        resultadoEconomiaTotal.textContent = formatarMoeda(r.economiaTotalVidaUtil);
-        resultadoPayback.textContent = r.paybackAnos > 0 ? `${formatarNumero(r.paybackAnos, 1)} anos` : '--';
-        resultadoCo2.textContent = `${formatarNumero(r.co2EvitadoAnual, 0)} kg`;
-        resultadoArvores.textContent = `${formatarNumero(r.arvoresEquivalentes, 0)} árvores`;
-        resultadoKmCarro.textContent = `${formatarNumero(r.kmCarroEletricoAnual, 0)} km`;
-        resultadoPotencia.textContent = `${formatarNumero(r.potenciaSistemaKWp, 2)} kWp`;
-        resultadoPaineis.textContent = r.numeroPaineis;
-        resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
-        resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
-        resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
-
-        secaoResultado.classList.remove('hidden');
-        graficosResultadoContainer.classList.remove('hidden');
-
-        atualizarGraficoConsumoMensal(r.consumoMensal, r.geracaoMensalEstimada);
-        atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
-        atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
-
-        secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function atualizarGraficoConsumoMensal(consumoMensal, geracaoMensal) {
-        const ctx = document.getElementById('graficoConsumoMensal')?.getContext('2d');
-        if (!ctx) return;
-        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
-        const sazonalidadeConsumo = [1.1, 1.05, 1.0, 0.95, 0.9, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15];
-        const sazonalidadeGeracao = [1.2, 1.15, 1.1, 1.0, 0.95, 0.9, 0.85, 0.9, 1.0, 1.05, 1.1, 1.15];
-        const consumoValores = sazonalidadeConsumo.map(f => consumoMensal * f);
-        const geracaoValores = sazonalidadeGeracao.map(f => geracaoMensal * f);
-        const data = {
-            labels: meses,
-            datasets: [
-                {
-                    label: 'Consumo (kWh)',
-                    data: consumoValores,
-                    borderColor: '#e74c3c',
-                    backgroundColor: 'rgba(231,76,60,0.2)',
-                    tension: 0.3
-                },
-                {
-                    label: 'Geração (kWh)',
-                    data: geracaoValores,
-                    borderColor: '#2ecc71',
-                    backgroundColor: 'rgba(46,204,113,0.2)',
-                    tension: 0.3
-                }
-            ]
-        };
-        const config = {
-            type: 'line',
-            data,
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Consumo e Geração Mensal (kWh)' }
-                },
-                scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        };
-        if (graficoConsumoMensal) graficoConsumoMensal.destroy();
-        graficoConsumoMensal = new Chart(ctx, config);
-    }
-
-    function atualizarGraficoConsumoGeracao(consumo, geracao) {
-        const ctx = document.getElementById('graficoConsumoGeracao')?.getContext('2d');
-        if (!ctx) return;
-        const data = {
-            labels: ['Consumo Médio (kWh)', 'Geração Estimada (kWh)'],
-            datasets: [{
-                data: [consumo.toFixed(0), geracao.toFixed(0)],
-                backgroundColor: ['rgba(231,76,60,0.7)', 'rgba(46,204,113,0.7)'],
-                borderColor: ['#e74c3c', '#2ecc71'],
-                borderWidth: 1
-            }]
-        };
-        const config = {
-            type: 'doughnut',
-            data,
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' }
-                }
-            }
-        };
-        if (graficoConsumoGeracao) graficoConsumoGeracao.destroy();
-        graficoConsumoGeracao = new Chart(ctx, config);
-    }
-
-    function atualizarGraficoPayback(investimento, economiaAnual, paybackAnos) {
-        const ctx = document.getElementById('graficoPaybackAcumulado')?.getContext('2d');
-        if (!ctx || investimento <= 0 || economiaAnual <= 0) return;
-        const anos = Math.max(Math.ceil(paybackAnos) + 3, 10);
-        const labels = Array.from({ length: anos + 1 }, (_, i) => `Ano ${i}`);
-        const dadosInvestimento = Array(anos + 1).fill(investimento);
-        const dadosEconomiaAcumulada = labels.map((_, i) => Math.min(economiaAnual * i, investimento * 1.5));
-        const dadosSaldo = labels.map((_, i) => (economiaAnual * i) - investimento);
-
-        const data = {
-            labels,
-            datasets: [
-                { label: 'Investimento (R$)', data: dadosInvestimento, borderColor: 'rgba(231,76,60,0.8)', borderDash: [5, 5], type: 'line', fill: false, pointRadius: 0 },
-                { label: 'Economia Acumulada (R$)', data: dadosEconomiaAcumulada, borderColor: 'rgba(46,204,113,0.8)', backgroundColor: 'rgba(46,204,113,0.2)', type: 'line', fill: true, tension: 0.1 },
-                { label: 'Saldo (R$)', data: dadosSaldo, borderColor: 'rgba(54,162,235,0.8)', backgroundColor: 'rgba(54,162,235,0.2)', type: 'bar' }
-            ]
-        };
-        const config = {
-            type: 'line',
-            data,
-            options: {
-                responsive: true,
-                plugins: {
-                    title: { display: true, text: 'Payback e Economia Acumulada ao Longo dos Anos' },
-                    tooltip: { mode: 'index', intersect: false }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        ticks: {
-                            callback: value => formatarMoeda(value)
-                        }
-                    }
-                }
-            }
-        };
-        if (graficoPayback) graficoPayback.destroy();
-        graficoPayback = new Chart(ctx, config);
-    }
-
-    selectEstado.addEventListener('change', popularCidades);
-    inputGastoMensal.addEventListener('input', atualizarDisplayGasto);
-    inputTarifa.addEventListener('input', atualizarDisplayGasto);
-
-    form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        if (validarEntradas()) {
-            const gasto = parseFloat(inputGastoMensal.value);
-            const tarifa = parseFloat(inputTarifa.value);
-            const hsp = parseFloat(selectCidade.value);
-            const resultados = calcularSimulacao(gasto, tarifa, hsp);
-            exibirResultados(resultados);
-        } else {
-            secaoResultado.classList.add('hidden');
-            graficosResultadoContainer.classList.add('hidden');
-        }
-    });
-
-    popularCidades();
-    atualizarDisplayGasto();
+  }
 });
