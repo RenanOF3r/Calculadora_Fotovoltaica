@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let graficoPayback;
     let graficoConsumoGeracao;
+    let graficoComparativoConsumo;
     let resultadosCalculados;
 
     const dadosCidades = {
@@ -204,14 +205,47 @@ document.addEventListener('DOMContentLoaded', () => {
         resultadoGeracaoAnual.textContent = `${formatarNumero(r.geracaoAnualEstimada, 0)} kWh`;
         resultadoArea.textContent = `${formatarNumero(r.areaMinima, 2)} m²`;
         resultadoPeso.textContent = `${formatarNumero(r.pesoEstimado, 0)} kg`;
- 1b77il-codex/adicionar-gráficos-de-payback
+
+        atualizarGraficoComparativoConsumo(r.consumoMensal, r.geracaoAnualEstimada);
         atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
         atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
 
- main
         secaoResultado.classList.remove('hidden');
         graficosResultadoContainer.classList.remove('hidden');
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function atualizarGraficoComparativoConsumo(consumoMensal, geracaoAnualEstimada) {
+        // Consumo sem FV = consumoMensal * 12
+        // Consumo com FV = max(consumoMensal * 12 - geracaoAnualEstimada, 0)
+        const ctx = document.getElementById('graficoConsumoComparativo')?.getContext('2d');
+        if (!ctx) return;
+        const consumoSemFV = consumoMensal * 12;
+        const consumoComFV = Math.max(consumoSemFV - geracaoAnualEstimada, 0);
+        const data = {
+            labels: ['Consumo Anual sem FV', 'Consumo Anual com FV'],
+            datasets: [{
+                label: 'Consumo (kWh/ano)',
+                data: [consumoSemFV, consumoComFV],
+                backgroundColor: ['#e74c3c', '#2ecc71']
+            }]
+        };
+        const config = {
+            type: 'bar',
+            data,
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false },
+                    title: { display: true, text: 'Comparativo de Consumo Anual (kWh)' }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        };
+        if (graficoComparativoConsumo) graficoComparativoConsumo.destroy();
+        graficoComparativoConsumo = new Chart(ctx, config);
     }
 
     function atualizarGraficoConsumoGeracao(consumo, geracao) {
@@ -285,6 +319,7 @@ document.addEventListener('DOMContentLoaded', () => {
         graficosResultadoContainer.classList.toggle('hidden');
         if (!graficosResultadoContainer.classList.contains('hidden')) {
             if (resultadosCalculados) {
+                atualizarGraficoComparativoConsumo(resultadosCalculados.consumoMensal, resultadosCalculados.geracaoAnualEstimada);
                 atualizarGraficoConsumoGeracao(resultadosCalculados.consumoMensal, resultadosCalculados.geracaoMensalEstimada);
                 atualizarGraficoPayback(resultadosCalculados.investimentoEstimado, resultadosCalculados.economiaAnual, resultadosCalculados.paybackAnos);
             }
