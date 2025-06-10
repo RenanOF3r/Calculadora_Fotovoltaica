@@ -27,9 +27,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const erroGasto = document.getElementById('erro-gasto');
     const erroTarifa = document.getElementById('erro-tarifa');
 
+    const btnToggleTheme = document.getElementById('toggle-theme');
+    const root = document.documentElement;
+
+    function aplicarTema(tema) {
+        root.setAttribute('data-bs-theme', tema);
+        if (btnToggleTheme) {
+            btnToggleTheme.innerHTML = tema === 'dark' ?
+                '<i class="fas fa-sun"></i>' :
+                '<i class="fas fa-moon"></i>';
+        }
+    }
+
+    btnToggleTheme?.addEventListener('click', () => {
+        const novoTema = root.getAttribute('data-bs-theme') === 'dark' ? 'light' : 'dark';
+        aplicarTema(novoTema);
+        localStorage.setItem('theme', novoTema);
+    });
+
+    aplicarTema(localStorage.getItem('theme') || 'light');
+
     let graficoPayback;
     let graficoConsumoGeracao;
-    let graficoComparativoConsumo;
+    let graficoConsumoMensal;
     let resultadosCalculados;
 
     const dadosCidades = {
@@ -208,42 +228,55 @@ document.addEventListener('DOMContentLoaded', () => {
         secaoResultado.classList.remove('hidden');
         graficosResultadoContainer.classList.remove('hidden');
 
-        atualizarGraficoComparativoConsumo(r.consumoMensal, r.geracaoAnualEstimada);
+        atualizarGraficoConsumoMensal(r.consumoMensal, r.geracaoMensalEstimada);
         atualizarGraficoConsumoGeracao(r.consumoMensal, r.geracaoMensalEstimada);
         atualizarGraficoPayback(r.investimentoEstimado, r.economiaAnual, r.paybackAnos);
 
         secaoResultado.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
-    function atualizarGraficoComparativoConsumo(consumoMensal, geracaoAnualEstimada) {
-        const ctx = document.getElementById('graficoConsumoComparativo')?.getContext('2d');
+    function atualizarGraficoConsumoMensal(consumoMensal, geracaoMensal) {
+        const ctx = document.getElementById('graficoConsumoMensal')?.getContext('2d');
         if (!ctx) return;
-        const consumoSemFV = consumoMensal * 12;
-        const consumoComFV = Math.max(consumoSemFV - geracaoAnualEstimada, 0);
+        const meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const sazonalidadeConsumo = [1.1, 1.05, 1.0, 0.95, 0.9, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15];
+        const sazonalidadeGeracao = [1.2, 1.15, 1.1, 1.0, 0.95, 0.9, 0.85, 0.9, 1.0, 1.05, 1.1, 1.15];
+        const consumoValores = sazonalidadeConsumo.map(f => consumoMensal * f);
+        const geracaoValores = sazonalidadeGeracao.map(f => geracaoMensal * f);
         const data = {
-            labels: ['Consumo Anual sem FV', 'Consumo Anual com FV'],
-            datasets: [{
-                label: 'Consumo (kWh/ano)',
-                data: [consumoSemFV, consumoComFV],
-                backgroundColor: ['#e74c3c', '#2ecc71']
-            }]
+            labels: meses,
+            datasets: [
+                {
+                    label: 'Consumo (kWh)',
+                    data: consumoValores,
+                    borderColor: '#e74c3c',
+                    backgroundColor: 'rgba(231,76,60,0.2)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Geração (kWh)',
+                    data: geracaoValores,
+                    borderColor: '#2ecc71',
+                    backgroundColor: 'rgba(46,204,113,0.2)',
+                    tension: 0.3
+                }
+            ]
         };
         const config = {
-            type: 'bar',
+            type: 'line',
             data,
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'Comparativo de Consumo Anual (kWh)' }
+                    title: { display: true, text: 'Consumo e Geração Mensal (kWh)' }
                 },
                 scales: {
                     y: { beginAtZero: true }
                 }
             }
         };
-        if (graficoComparativoConsumo) graficoComparativoConsumo.destroy();
-        graficoComparativoConsumo = new Chart(ctx, config);
+        if (graficoConsumoMensal) graficoConsumoMensal.destroy();
+        graficoConsumoMensal = new Chart(ctx, config);
     }
 
     function atualizarGraficoConsumoGeracao(consumo, geracao) {

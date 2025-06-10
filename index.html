@@ -1,6 +1,6 @@
 <!-- index.html -->
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,21 +8,30 @@
     <title>Simulador Solar Fotovoltaico Avançado</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
     <script src="script.js" defer></script>
 </head>
 <body>
 
-    <header>
-        <h1>Simulador Solar Fotovoltaico</h1>
-        <p>Utilize o formulário abaixo para calcular seu sistema fotovoltaico.</p>
+    <header class="bg-primary text-white shadow-sm mb-4">
+        <div class="container py-4 d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <div class="text-center text-md-start">
+                <h1 class="mb-1">Simulador Solar Fotovoltaico</h1>
+                <p class="lead mb-0">Utilize o formulário abaixo para calcular seu sistema fotovoltaico.</p>
+            </div>
+            <button id="toggle-theme" class="btn btn-outline-light mt-3 mt-md-0" aria-label="Alternar tema">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
     </header>
 
-    <main>
-        <form id="calculadora-form">
-            <div>
-                <label for="estado">Estado</label>
-                <select id="estado" name="estado" required>
+    <main class="container">
+        <form id="calculadora-form" class="bg-white p-4 rounded shadow-sm mb-4">
+            <div class="mb-3">
+                <label for="estado" class="form-label">Estado</label>
+                <select id="estado" name="estado" class="form-select" required>
                     <option value="">Selecione...</option>
                     <option value="RJ">Rio de Janeiro</option>
                     <option value="SP">São Paulo</option>
@@ -33,33 +42,37 @@
                 <span class="error" id="erro-estado"></span>
             </div>
 
-            <div>
-                <label for="cidade">Cidade</label>
-                <select id="cidade" name="cidade" disabled required>
+            <div class="mb-3">
+                <label for="cidade" class="form-label">Cidade</label>
+                <select id="cidade" name="cidade" class="form-select" disabled required>
                     <option value="">Selecione o estado primeiro...</option>
                 </select>
                 <span class="error" id="erro-cidade"></span>
             </div>
 
-            <div>
-                <label for="gasto-mensal">Gasto Mensal (R$)</label>
-                <input type="number" id="gasto-mensal" min="50" step="0.01" value="500" required>
+            <div class="mb-3">
+                <label for="gasto-mensal" class="form-label">Gasto Mensal (R$)</label>
+                <input type="number" id="gasto-mensal" class="form-control" min="50" step="0.01" value="500" required>
                 <output id="gasto-mensal-valor">500</output>
                 <span class="error" id="erro-gasto"></span>
             </div>
 
-            <div>
-                <label for="tarifa">Tarifa (R$/kWh)</label>
-                <input type="number" id="tarifa" step="0.01" value="0.85" required>
+            <div class="mb-3">
+                <label for="tarifa" class="form-label">Tarifa (R$/kWh)</label>
+                <input type="number" id="tarifa" class="form-control" step="0.01" value="0.85" required>
                 <span class="error" id="erro-tarifa"></span>
             </div>
 
             <p>Consumo Mensal Estimado: <span id="consumo-estimado">-- kWh</span></p>
 
-            <button type="submit">Calcular</button>
+            <div class="d-grid mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-solar-panel me-1"></i> Calcular
+                </button>
+            </div>
         </form>
 
-        <section id="resultado-calculo" class="hidden">
+        <section id="resultado-calculo" class="hidden bg-white p-4 rounded shadow-sm mb-4">
             <h2>Resultados</h2>
             <p>Investimento aproximado: <strong id="resultado-investimento">--</strong></p>
             <p>Economia mensal estimada: <strong id="resultado-economia-mes">--</strong></p>
@@ -77,11 +90,17 @@
             <p>Peso estimado: <strong id="resultado-peso">--</strong></p>
         </section>
 
-        <section id="graficos-resultado-container" class="hidden">
-            <canvas id="graficoConsumoComparativo"></canvas>
+        <section id="graficos-resultado-container" class="hidden bg-white p-4 rounded shadow-sm">
+            <canvas id="graficoConsumoMensal"></canvas>
             <canvas id="graficoPaybackAcumulado"></canvas>
             <canvas id="graficoConsumoGeracao"></canvas>
         </section>
     </main>
+
+    <footer class="bg-primary text-white py-3 mt-4">
+        <div class="container text-center">
+            <small>&copy; 2024 Simulador Solar Fotovoltaico</small>
+        </div>
+    </footer>
 </body>
 </html>

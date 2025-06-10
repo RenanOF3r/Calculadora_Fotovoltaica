@@ -2,7 +2,8 @@ body {
     font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background: #f8f8f8;
+    background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+    min-height: 100vh;
 }
 
 header {
@@ -74,25 +75,16 @@ output {
     margin-left: 0.3rem;
 }
 
-button[type=submit] {
-    margin-top: 0.5rem;
-    background: #27334d;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    font-size: 1.04rem;
+.btn-primary {
+    background-color: #e67e22;
+    border-color: #e67e22;
     font-weight: 600;
-    padding: 0.6rem 1.5rem;
-    cursor: pointer;
-    transition: background 0.22s;
     box-shadow: 0 1px 8px 0 rgba(80, 115, 255, 0.06);
-    display: flex;
-    align-items: center;
-    gap: 0.6em;
 }
 
-button[type=submit]:hover {
-    background: #14326a;
+.btn-primary:hover {
+    background-color: #d35400;
+    border-color: #d35400;
 }
 
 .error {
@@ -191,4 +183,41 @@ canvas {
     header h1 {
         font-size: 1.25rem !important;
     }
+}
+
+/* Tema escuro */
+body[data-bs-theme='dark'] {
+    background-color: #121212;
+    color: #f8f9fa;
+}
+
+body[data-bs-theme='dark'] .bg-light {
+    background-color: #343a40 !important;
+}
+
+body[data-bs-theme='dark'] .border-bottom,
+body[data-bs-theme='dark'] .border-top {
+    border-color: #495057 !important;
+}
+
+body[data-bs-theme='dark'] .bg-primary {
+    background-color: #1e2a45 !important;
+}
+
+body[data-bs-theme='dark'] .bg-white,
+body[data-bs-theme='dark'] form,
+body[data-bs-theme='dark'] #resultado-calculo,
+body[data-bs-theme='dark'] #graficos-resultado-container,
+body[data-bs-theme='dark'] canvas {
+    background-color: #212529 !important;
+    color: #f8f9fa;
+}
+
+body[data-bs-theme='dark'] strong {
+    color: #51cf66;
+}
+
+body[data-bs-theme='dark'] .btn-primary {
+    background-color: #d35400;
+    border-color: #d35400;
 }
