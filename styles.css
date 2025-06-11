@@ -78,8 +78,10 @@ header .btn {
   box-shadow: 0 0.25rem 0.5rem rgba(0,0,0,0.1);
 }
 #graficos-resultado-container canvas {
-  max-width: 100%;
+  max-width: 600px;
+  width: 100%;
   height: auto !important;
+  margin: 0 auto;
 }
 
 /* Footer */
